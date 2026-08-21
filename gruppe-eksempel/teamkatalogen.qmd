@@ -1,0 +1,23 @@
+---
+title: "Teamkatalog – Nav-organisasjonen"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{python}
+#| echo: false
+from google.cloud import bigquery
+
+client = bigquery.Client()
+```
+
+```{python}
+query = """
+select * from `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_med_tilhorighet`
+"""
+df = client.query(query).to_dataframe()
+df.head()
+```
