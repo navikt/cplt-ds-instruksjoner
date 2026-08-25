@@ -25,7 +25,7 @@ df.head()
 
 ```{python}
 
-fig = px.histogram(df, x="tilhorighet", title="Fordeling av tilhørighet i teamkatalogen")
+fig = px.histogram(df, x="omrade_navn", title="Fordeling av tilhørighet i teamkatalogen")
 fig.show()
 
 ```

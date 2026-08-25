@@ -104,11 +104,11 @@ Du sjekker hvilke instruksjoner som er tilgjengelige i cplt med `/instructions`
 ## Kom i gang
 
 0. Anbefalt: Installer anbefalte VSCode-extensions med `cmd+shift+p` → `Extensions: Show Recommended Extensions` → `Install All`
-1. Installer **just**, feks med `brew install just` på Mac. Test ved å skrive `just` i terminalen
-2. Installer alt for denne workshopen med `just bootstrap`
-3. Opprett gruppens mappe med `just init <gruppe-navn>`
+1. `just` i terminalen: hvis feil, så installer **just**, feks med `brew install just` på Mac
+2. `just bootstrap`: installer alt for denne workshopen med
+3. `just init <gruppe-navn>`: Opprett gruppens mappe
     - dette oppretter en mappe med et ferdig skjelett, se justfile for detaljer
-4. cd til gruppens mappe og start cplt med `cplt -d .`
+4. `cd <gruppe-navn>` og så `cplt -d .`: starter cplt i gruppemappen
     - sjekk at det står `Project: .../cplt-ds-instruksjoner/<gruppe-navn>` i cplt
     - verifiser at instruksjonsfilene lastes inn med `/instructions` i cplt
 

@@ -17,4 +17,11 @@ init gruppenavn:
     cp gruppe-eksempel/oppgave.md {{gruppenavn}}/
     cp gruppe-eksempel/teamkatalogen.qmd {{gruppenavn}}/
     @echo ""
-    @echo "✅ Klart! Neste steg: cd inn i mappa og kjør 'cplt -d .'"
+    @echo "✅ Klart! Kjør 'uv sync', og så cd inn i gruppemappa og kjør 'cplt -d .'"
+
+# viser 
+render:
+    @echo "Kjører quarto render"
+    uv run quarto render gruppe-eksempel/teamkatalogen.qmd
+    @echo ""
+    @echo "OBS! Quarto casher innimellom litt for mye, så ved feil kan det hjelpe å starte ny terminal"
