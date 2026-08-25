@@ -18,7 +18,7 @@ init gruppenavn:
     cp gruppe-eksempel/eksempel-oppgave.md {{gruppenavn}}/
     cp gruppe-eksempel/teamkatalogen.qmd {{gruppenavn}}/
     @echo ""
-    @echo "✅ Klart! Neste steg: cd inn i mappa og kjør `cplt -d .`"
+    @echo "✅ Klart! Neste steg: cd inn i mappa og kjør 'cplt -d .'"
 
 # Rendrer Quarto-rapporten i gruppemappen
 render fil="teamkatalogen.qmd":
