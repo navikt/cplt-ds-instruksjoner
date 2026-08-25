@@ -11,7 +11,7 @@ Lage og teste om instruksjoner gjør cplt bedre tilpasset DS-arbeidsoppgaver i N
 ## Ønsket resultat
 
 - undersøke om instruksjonsfiler gjør cplt bedre i DS-oppgaver
-- undersøke om tokenbruk øker eller minker med instruksjonsfiler
+- mulighet: undersøke om tokenbruk øker eller minker med instruksjonsfiler
 - teste instruksjoner med en konkret visualiseringsoppgave, feks på teamkatalogdata fra BigQuery
 - hvis vi er positive: samle et par forslag og ha action points for videre arbeid
 
@@ -28,6 +28,9 @@ Lage og teste om instruksjoner gjør cplt bedre tilpasset DS-arbeidsoppgaver i N
 - **10:30:** Erfaringsdeling i Gnisten
 - **10:45:** Veien videre med instruksjonsfiler
 - **10:50:** Tilbakemeldinger på sesjonen
+
+---
+
 - **11:00:** Lunsj i kantina
 - **11:50:** Avreise til hemmelig bedriftsbesøk
 - **12:30:** Bedriftsbesøket starter
@@ -84,8 +87,10 @@ Du sjekker hvilke instruksjoner som er tilgjengelige i cplt med `/instructions`
         - enten `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_med_tilhorighet`
         - eller tabellene på `org-prod-1016.teamkatalogen_federated_query_updated_dataset.*`
 - legg instruksjonene under følgende sti i repoet:
-    - `gruppe-navn/.github/copilot-instructions.md` # Instruksjoner som gjelder for hele gruppeprosjektet.
-    - `gruppe-navn/.github/instructions/*.instructions.md` # Avgrensede instruksjoner for bestemte filtyper eller mapper.
+    - `gruppe-navn/.github/copilot-instructions.md` # Instruksjoner som gjelder for hele gruppeprosjektet
+    - `gruppe-navn/.github/instructions/python.instructions.md` # Instruksjoner for pyhton
+    - `gruppe-navn/.github/instructions/sql.instructions.md` # Instruksjoner for sql
+    - `gruppe-navn/.github/instructions/<andre-filtyper>.instructions.md` # Instruksjoner for andre filtyper
 
 
 ## Arbeidsform

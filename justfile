@@ -15,7 +15,7 @@ init gruppenavn:
     mkdir -p {{gruppenavn}}
     cd {{gruppenavn}} && uv init --bare --description "Gruppe {{gruppenavn}} lager instruksjoner for Cplt"
     cp -r gruppe-eksempel/.github {{gruppenavn}}/
-    cp gruppe-eksempel/eksempeloppgave.md {{gruppenavn}}/
+    cp gruppe-eksempel/eksempel-oppgave.md {{gruppenavn}}/
     cp gruppe-eksempel/teamkatalogen.qmd {{gruppenavn}}/
     @echo ""
     @echo "✅ Klart! Neste steg: cd inn i mappa og kjør `cplt -d .`"
