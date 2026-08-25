@@ -95,6 +95,7 @@ Du sjekker hvilke instruksjoner som er tilgjengelige i cplt med `/instructions`
 
 ## Arbeidsform
 
+- Oppgave: visualiser noe fra teamkatalogen, 
 - Vi arbeider i grupper på 3 til 5 personer
 - Hver gruppe arbeider i sin egen mappe i repoet
 - Vi mob-programmerer og bytter på hvem som skriver hvert 15. minutt, da får alle prøvd cplt
@@ -102,7 +103,8 @@ Du sjekker hvilke instruksjoner som er tilgjengelige i cplt med `/instructions`
 
 ## Kom i gang
 
-1. Installer **just**, feks med `brew install just` på Mac
+0. Anbefalt: Installer anbefalte VSCode-extensions med `cmd+shift+p` → `Extensions: Show Recommended Extensions` → `Install All`
+1. Installer **just**, feks med `brew install just` på Mac. Test ved å skrive `just` i terminalen
 2. Installer alt for denne workshopen med `just bootstrap`
 3. Opprett gruppens mappe med `just init <gruppe-navn>`
     - dette oppretter en mappe med et ferdig skjelett, se justfile for detaljer

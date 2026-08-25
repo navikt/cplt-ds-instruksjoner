@@ -1,0 +1,14 @@
+{
+    "git.autofetch": true,
+    "editor.minimap.size": "fill",
+    "jupytextSync.pythonExecutable": "${workspaceFolder}/.venv/bin/python", // Bruk lokal python for jupytext
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "[quarto]": {
+        "editor.wordWrap": "on",
+        "editor.quickSuggestions": {
+        "other": "on",
+        "strings": "on",
+        "comments": "on",
+        }
+    },
+}

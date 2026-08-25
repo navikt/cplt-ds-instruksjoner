@@ -26,10 +26,10 @@
     "quarto.quarto",
 
     // notebooks
-    // "caenrigen.jupytext-sync",
-    // "ms-toolsai.jupyter-renderers",
-    // "ms-toolsai.jupyter",
-    // "ms-toolsai.vscode-jupyter-cell-tags",
+    "ms-toolsai.jupyter",
+    "caenrigen.jupytext-sync",
+    "ms-toolsai.jupyter-renderers",
+    "ms-toolsai.vscode-jupyter-cell-tags",
 
     // dbt-extensions
     // "samuelcolvin.jinjahtml",

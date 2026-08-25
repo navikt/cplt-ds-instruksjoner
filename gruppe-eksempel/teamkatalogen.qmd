@@ -10,6 +10,7 @@ format:
 ```{python}
 #| echo: false
 from google.cloud import bigquery
+from plotly import express as px
 
 client = bigquery.Client()
 ```
@@ -20,4 +21,11 @@ select * from `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_m
 """
 df = client.query(query).to_dataframe()
 df.head()
+```
+
+```{python}
+
+fig = px.histogram(df, x="tilhorighet", title="Fordeling av tilhørighet i teamkatalogen")
+fig.show()
+
 ```
