@@ -45,12 +45,6 @@ I knast er cplt ikke mulig, så vi må jobbe på aggregerte tall eller syntetisk
 Husk også at [min-copilot.ansatt.nav.no](https://min-copilot.ansatt.nav.no/praksis) gir mye informasjon om Copilot i Nav, men dette er ikke alltid relevant for DS-hverdagen.
 
 
-## nav-pilot
-
-...
-- nav-pilot (https://min-copilot.ansatt.nav.no/nav-pilot) kjenner Nav sin arkitektur, men mest for utviklere
-
-
 ## Instruksjonsfiler
 
 Instruksjonsfiler er ekstra kontekst til cplt om spesifikke filtyper.
@@ -75,7 +69,9 @@ Du sjekker hvilke instruksjoner som er tilgjengelige i cplt med `/instructions`
 ## Annet
 
 - skills er mer rettet mot spesifikke handlinger, feks java-to-kotlin og kanskje typ maskere-små-tall
-- MCP er ...
+- Model Context Protocol (MCP) gir Copilot CLI mulighet til å snakke direkte med APIer og databaser gjennom et standardisert grensesnitt. Eks på generell MCP: en LLM-chatbot som har tilgang til salgsdata (eller vedtak hos oss, hvis noen hadde gjort det). Eks på MCP for cplt: gi tilgang verktøy du ville brukt i utvikling og feilsøking, feks ´github-mcp` som gir tilgang til andre repo på GitHub.
+- Agenter, eller custom agenter, er spesialiserte "sub"agenter som skal løse bestemte oppgaver. Feks være sikkerhetsagent, klarspråkagent.
+- nav-pilot er en agent (https://min-copilot.ansatt.nav.no/nav-pilot) kjenner Nav sin arkitektur typiske, men mest for utviklere. Den laster skills mm som er relevante for utviklerteam.
 
 
 # Workshop på blåtur
