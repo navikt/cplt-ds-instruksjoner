@@ -1,0 +1,27 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Teamkatalogen"
+  navbar:
+    logo: https://raw.githubusercontent.com/navikt/komme-i-gang-med-llm/4bf0926245b28ea1d90f9bfb9eb00b28a1e690c7/brand/NAV_logo_digital_Red.svg
+    left:
+      - href: teamkatalogen.qmd
+        text: Tilhørighet på tvers av områder
+      - href: teamkatalogen-3d.qmd
+        text: Tilhørighet i tre dimensjoner
+      - href: teamkatalogen-interaktiv.qmd
+        text: Utforsk områdene
+      - href: teamstruktur.qmd
+        text: Teamstruktur
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    embed-resources: true
+
+lang: nb

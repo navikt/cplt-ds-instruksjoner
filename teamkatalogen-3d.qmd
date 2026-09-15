@@ -1,0 +1,134 @@
+---
+title: "Organisasjonsgalaksen"
+subtitle: "Teamkatalogen i tre dimensjoner"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+execute:
+  echo: false
+---
+
+<img src="https://raw.githubusercontent.com/navikt/komme-i-gang-med-llm/4bf0926245b28ea1d90f9bfb9eb00b28a1e690c7/brand/NAV_logo_digital_Red.svg" alt="NAV" width="96">
+
+## Hvor finnes teamene?
+
+Hvert punkt viser en kombinasjon av produktområde, teamtype og status. Flytt
+på diagrammet for å se strukturen fra ulike vinkler: vannrett akse rangerer
+produktområdene etter antall team, dybdeaksen viser teamtype, og den loddrette
+aksen viser status. Større punkter betyr flere registrerte team.
+
+Farge representerer teamtype, mens symbol viser status. Datagrunnlaget er
+aggregert og inneholder ingen personopplysninger.
+
+```{python}
+from pathlib import Path
+
+import pandas as pd
+from plotly import express as px
+
+datafil = Path("data/teamoversikt.csv")
+if not datafil.exists():
+    raise FileNotFoundError(
+        "Mangler datafil. Kjør .venv/bin/python scripts/hent_teamkatalogdata.py "
+        "teamoversikt."
+    )
+
+teamoversikt = pd.read_csv(datafil)
+if teamoversikt.empty:
+    raise ValueError("Datafilen inneholder ingen registrerte team.")
+
+produktomraader = (
+    teamoversikt.groupby("produktomraade")["antall_team"]
+    .sum()
+    .sort_values(ascending=False)
+)
+produktomraade_rangering = {
+    produktomraade: rangering
+    for rangering, produktomraade in enumerate(produktomraader.index, start=1)
+}
+teamtyper = sorted(teamoversikt["teamtype"].unique())
+statuser = sorted(teamoversikt["status"].unique())
+teamtype_posisjon = {
+    teamtype: posisjon for posisjon, teamtype in enumerate(teamtyper, start=1)
+}
+status_posisjon = {
+    status: posisjon for posisjon, status in enumerate(statuser, start=1)
+}
+
+galakse = teamoversikt.copy()
+galakse["produktomraade_rangering"] = galakse["produktomraade"].map(
+    produktomraade_rangering
+)
+galakse["teamtype_posisjon"] = galakse["teamtype"].map(teamtype_posisjon)
+galakse["status_posisjon"] = galakse["status"].map(status_posisjon)
+```
+
+```{python}
+NAV_KATEGORIER = [
+    "#2176D4", "#b65681", "#457c9d",
+    "#ad634a", "#905bd3", "#757c00",
+]
+
+fig = px.scatter_3d(
+    galakse,
+    x="produktomraade_rangering",
+    y="teamtype_posisjon",
+    z="status_posisjon",
+    size="antall_team",
+    color="teamtype",
+    symbol="status",
+    color_discrete_sequence=NAV_KATEGORIER,
+    hover_name="produktomraade",
+    hover_data={
+        "produktomraade_rangering": False,
+        "teamtype_posisjon": False,
+        "status_posisjon": False,
+        "teamtype": True,
+        "status": True,
+        "antall_team": ":,",
+    },
+    labels={
+        "teamtype": "Teamtype",
+        "status": "Status",
+        "antall_team": "Registrerte team",
+    },
+    title="Produktområder, teamtyper og status i samme rom",
+)
+fig.update_traces(
+    marker={"opacity": 0.85, "line": {"color": "#202733", "width": 1}}
+)
+fig.update_layout(
+    font={"family": "Source Sans 3, sans-serif", "color": "#202733", "size": 16},
+    paper_bgcolor="#ffffff",
+    legend={"title": "Teamtype og status", "font": {"size": 14}},
+    margin={"l": 0, "r": 0, "t": 80, "b": 0},
+    scene={
+        "aspectmode": "cube",
+        "camera": {"eye": {"x": 1.6, "y": 1.6, "z": 1.25}},
+        "xaxis": {
+            "title": {"text": "Produktområder (rangert)", "font": {"size": 22}},
+            "tickfont": {"size": 13},
+        },
+        "yaxis": {
+            "title": {"text": "Teamtype", "font": {"size": 22}},
+            "tickvals": list(teamtype_posisjon.values()),
+            "ticktext": teamtyper,
+            "tickfont": {"size": 13},
+        },
+        "zaxis": {
+            "title": {"text": "Status", "font": {"size": 22}},
+            "tickvals": list(status_posisjon.values()),
+            "ticktext": statuser,
+            "tickfont": {"size": 15},
+        },
+        "bgcolor": "#ffffff",
+    },
+)
+fig.show()
+```
+
+Produktområdene er rangert for å gjøre den tette strukturen navigerbar.
+Hold pekeren over et punkt for å lese navnet på produktområdet og det
+aggregert antallet team i kombinasjonen.

@@ -1,0 +1,74 @@
+---
+title: "Teamstruktur på tvers av produktområder"
+subtitle: "Produktområde, teamtype og status i teamkatalogen"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+execute:
+  echo: false
+---
+
+<img src="https://raw.githubusercontent.com/navikt/komme-i-gang-med-llm/4bf0926245b28ea1d90f9bfb9eb00b28a1e690c7/brand/NAV_logo_digital_Red.svg" alt="NAV" width="96">
+
+## Slik er teamene organisert
+
+Dette solstrålediagrammet viser hvordan registrerte team fordeler seg mellom
+produktområder, teamtyper og status. Klikk på et produktområde eller en
+teamtype for å zoome inn, og klikk i sentrum for å gå tilbake. Arealet til
+hvert felt er proporsjonalt med antall team.
+
+Datagrunnlaget er en aggregert kobling mellom tabellene `Teams` og
+`Produktomraader`. Det inneholder ingen personopplysninger.
+
+```{python}
+from pathlib import Path
+
+import pandas as pd
+from plotly import express as px
+
+datafil = Path("data/teamoversikt.csv")
+if not datafil.exists():
+    raise FileNotFoundError(
+        "Mangler datafil. Kjør .venv/bin/python scripts/hent_teamkatalogdata.py "
+        "teamoversikt."
+    )
+
+teamoversikt = pd.read_csv(datafil)
+if teamoversikt.empty:
+    raise ValueError("Datafilen inneholder ingen registrerte team.")
+
+NAV_KATEGORIER = [
+    "#2176D4", "#b65681", "#457c9d",
+    "#ad634a", "#905bd3", "#757c00",
+]
+```
+
+```{python}
+fig = px.sunburst(
+    teamoversikt,
+    path=["produktomraade", "teamtype", "status"],
+    values="antall_team",
+    color="teamtype",
+    color_discrete_sequence=NAV_KATEGORIER,
+    hover_data={"antall_team": ":,"},
+    title="Registrerte team etter produktområde, type og status",
+)
+fig.update_traces(
+    hovertemplate=(
+        "<b>%{label}</b><br>Registrerte team: %{value:,}"
+        "<br>Andel av valgt nivå: %{percentParent:.1%}<extra></extra>"
+    )
+)
+fig.update_layout(
+    font={"family": "Source Sans 3, sans-serif", "color": "#202733"},
+    paper_bgcolor="#ffffff",
+    margin={"l": 10, "r": 10, "t": 80, "b": 10},
+)
+fig.show()
+```
+
+**Slik leser du figuren:** Første ring viser produktområdene. Neste ring deler
+dem etter teamtype, og ytterste ring viser status. Farge viser teamtype, mens
+tekst og verktøytips viser det nøyaktige antallet registrerte team.

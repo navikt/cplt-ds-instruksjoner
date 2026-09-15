@@ -1,7 +1,7 @@
 [project]
 name = "cplt-ds-instruksjoner"
-description = "Workshop for å lage instruksjonsfiler til cplt for DS-er"
 version = "0.1.0"
+description = "Workshop for å lage instruksjonsfiler til cplt for DS-er"
 requires-python = ">=3.13"
 dependencies = [
     "numpy>=2.5.2",

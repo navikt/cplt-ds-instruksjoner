@@ -1,5 +1,15 @@
+/.quarto/
+
+# Local Python environment
 .venv/
 __pycache__/
-.quarto/
-*.html
+*.py[cod]
+
+# Quarto render output
+_site/
+
+# Locally retrieved data
+data/*.csv
+
+# Jupyter checkpoints
 .ipynb_checkpoints/

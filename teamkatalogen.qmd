@@ -1,0 +1,83 @@
+---
+title: "Hvor er tilhørighetene registrert?"
+subtitle: "En oversikt over områder i NAVs teamkatalog"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+execute:
+  echo: false
+---
+
+## Tilhørighet på tvers av områder
+
+Teamkatalogen registrerer hvilke områder personer har tilhørighet til. Denne
+fortellingen viser hvor mange registrerte tilhørigheter hvert område har. Data
+hentes ferdig aggregert fra BigQuery, slik at ingen personopplysninger lastes
+ned til rapporten.
+
+```{python}
+from pathlib import Path
+
+import pandas as pd
+from plotly import express as px
+
+nav_bla = "#0063C1"
+datafil = Path("data/tilhorigheter_per_omrade.csv")
+if not datafil.exists():
+    raise FileNotFoundError(
+        "Mangler datafil. Kjør .venv/bin/python scripts/hent_teamkatalogdata.py."
+    )
+
+tilhorigheter_per_omrade = pd.read_csv(datafil)
+```
+
+```{python}
+antall_omrader = len(tilhorigheter_per_omrade)
+antall_tilhorigheter = tilhorigheter_per_omrade["antall_tilhorigheter"].sum()
+
+print(
+    f"Datasettet inneholder {antall_tilhorigheter:,} registrerte tilhørigheter "
+    f"fordelt på {antall_omrader} områder."
+)
+```
+
+## De største områdene
+
+Diagrammet nedenfor viser de 15 områdene med flest registrerte tilhørigheter.
+Områder uten oppgitt navn er beholdt som en egen kategori, slik at manglende
+registreringer er synlige i oversikten.
+
+```{python}
+topp_omrader = tilhorigheter_per_omrade.head(15).sort_values(
+    "antall_tilhorigheter"
+)
+
+fig = px.bar(
+    topp_omrader,
+    x="antall_tilhorigheter",
+    y="omrade_navn",
+    orientation="h",
+    text="antall_tilhorigheter",
+    color_discrete_sequence=[nav_bla],
+    title="15 områder med flest registrerte tilhørigheter",
+    labels={
+        "omrade_navn": "Område",
+        "antall_tilhorigheter": "Registrerte tilhørigheter",
+    },
+)
+fig.update_traces(texttemplate="%{text:,}", textposition="outside")
+fig.update_layout(
+    font={"family": "Source Sans 3, sans-serif", "color": "#202733"},
+    paper_bgcolor="#ffffff",
+    plot_bgcolor="#ffffff",
+    showlegend=False,
+    yaxis={"categoryorder": "total ascending"},
+    margin={"l": 20, "r": 70, "t": 70, "b": 50},
+)
+fig.show()
+```
+
+Antallet er **registrerte tilhørigheter**, ikke nødvendigvis antall unike
+personer. En person kan ha flere registreringer i historikkgrunnlaget.

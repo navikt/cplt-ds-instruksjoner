@@ -1,0 +1,201 @@
+---
+title: "Utforsk produktområdene"
+subtitle: "Lettvekts interaktiv sammenligning av teamprofiler"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+execute:
+  echo: false
+---
+
+<img src="https://raw.githubusercontent.com/navikt/komme-i-gang-med-llm/4bf0926245b28ea1d90f9bfb9eb00b28a1e690c7/brand/NAV_logo_digital_Red.svg" alt="NAV" width="96">
+
+## Velg hva som skal sammenlignes
+
+Denne grafen laster én serie om gangen, slik at den åpner raskt. Bruk knappene
+for å rangere produktområdene etter flest registrerte team eller høyest aktiv
+andel. Slideren bestemmer om de 5, 10 eller 20 største produktområdene vises.
+
+Farge viser den mest utbredte teamtypen i hvert produktområde. Hold pekeren
+over en stolpe for å se nøyaktig antall team, aktiv andel og dominerende type.
+
+```{python}
+from pathlib import Path
+
+import pandas as pd
+from plotly import graph_objects as go
+
+datafil = Path("data/teamoversikt.csv")
+if not datafil.exists():
+    raise FileNotFoundError(
+        "Mangler datafil. Kjør .venv/bin/python scripts/hent_teamkatalogdata.py "
+        "teamoversikt."
+    )
+
+teamoversikt = pd.read_csv(datafil)
+if teamoversikt.empty:
+    raise ValueError("Datafilen inneholder ingen registrerte team.")
+
+NAV_KATEGORIER = [
+    "#2176D4", "#b65681", "#457c9d",
+    "#ad634a", "#905bd3", "#757c00",
+]
+teamtyper = sorted(teamoversikt["teamtype"].unique())
+farger = {
+    teamtype: NAV_KATEGORIER[index % len(NAV_KATEGORIER)]
+    for index, teamtype in enumerate(teamtyper)
+}
+
+profil = (
+    teamoversikt.groupby("produktomraade", as_index=False)
+    .agg(
+        antall_team=("antall_team", "sum"),
+        antall_teamtyper=("teamtype", "nunique"),
+    )
+)
+aktive = (
+    teamoversikt.loc[teamoversikt["status"] == "ACTIVE"]
+    .groupby("produktomraade", as_index=False)["antall_team"]
+    .sum()
+    .rename(columns={"antall_team": "aktive_team"})
+)
+dominerende_type = (
+    teamoversikt.sort_values(
+        ["produktomraade", "antall_team", "teamtype"],
+        ascending=[True, False, True],
+    )
+    .drop_duplicates("produktomraade")
+    [["produktomraade", "teamtype"]]
+)
+profil = profil.merge(aktive, on="produktomraade", how="left").merge(
+    dominerende_type, on="produktomraade", how="left"
+)
+profil["aktive_team"] = profil["aktive_team"].fillna(0)
+profil["aktiv_andel"] = profil["aktive_team"] / profil["antall_team"] * 100
+profil["farge"] = profil["teamtype"].map(farger)
+nivaaer = sorted({5, 10, min(20, len(profil))})
+
+
+def lag_stolpeutvalg(antall, sorteringskolonne):
+    return profil.nlargest(antall, sorteringskolonne).sort_values("antall_team")
+
+
+def stolpeverdier(utvalg):
+    return {
+        "x": [utvalg["antall_team"].tolist()],
+        "y": [utvalg["produktomraade"].tolist()],
+        "marker.color": [utvalg["farge"].tolist()],
+        "customdata": [
+            utvalg[["aktive_team", "aktiv_andel", "antall_teamtyper", "teamtype"]]
+            .to_numpy()
+            .tolist()
+        ],
+    }
+```
+
+```{python}
+start = lag_stolpeutvalg(nivaaer[-1], "antall_team")
+fig = go.Figure(
+    go.Bar(
+        x=start["antall_team"],
+        y=start["produktomraade"],
+        orientation="h",
+        marker_color=start["farge"],
+        customdata=start[
+            ["aktive_team", "aktiv_andel", "antall_teamtyper", "teamtype"]
+        ].to_numpy(),
+        hovertemplate=(
+            "<b>%{y}</b><br>Registrerte team: %{x:,}<br>"
+            "Aktive team: %{customdata[0]:,} (%{customdata[1]:.1f}%)<br>"
+            "Teamtyper: %{customdata[2]}<br>"
+            "Mest utbredte type: %{customdata[3]}<extra></extra>"
+        ),
+    )
+)
+
+slider_steg = [
+    {
+        "label": f"Topp {antall}",
+        "method": "update",
+        "args": [
+            stolpeverdier(lag_stolpeutvalg(antall, "antall_team")),
+            {"title": f"{antall} produktområder med flest registrerte team"},
+        ],
+    }
+    for antall in nivaaer
+]
+
+fig.update_layout(
+    title=f"{nivaaer[-1]} produktområder med flest registrerte team",
+    font={"family": "Source Sans 3, sans-serif", "color": "#202733", "size": 16},
+    paper_bgcolor="#ffffff",
+    plot_bgcolor="#ffffff",
+    showlegend=False,
+    xaxis={
+        "title": {"text": "Registrerte team", "font": {"size": 20}},
+        "rangemode": "tozero",
+        "gridcolor": "#ecedef",
+    },
+    yaxis={"title": {"text": "Produktområde", "font": {"size": 20}}},
+    margin={"l": 35, "r": 35, "t": 120, "b": 110},
+    updatemenus=[
+        {
+            "type": "buttons",
+            "direction": "right",
+            "x": 0,
+            "xanchor": "left",
+            "y": 1.18,
+            "yanchor": "top",
+            "buttons": [
+                {
+                    "label": "Flest team",
+                    "method": "update",
+                    "args": [
+                        stolpeverdier(
+                            lag_stolpeutvalg(nivaaer[-1], "antall_team")
+                        ),
+                        {
+                            "title": (
+                                f"{nivaaer[-1]} produktområder med flest "
+                                "registrerte team"
+                            )
+                        },
+                    ],
+                },
+                {
+                    "label": "Høyest aktiv andel",
+                    "method": "update",
+                    "args": [
+                        stolpeverdier(
+                            lag_stolpeutvalg(nivaaer[-1], "aktiv_andel")
+                        ),
+                        {
+                            "title": (
+                                f"{nivaaer[-1]} produktområder med høyest "
+                                "andel aktive team"
+                            )
+                        },
+                    ],
+                },
+            ],
+        }
+    ],
+    sliders=[
+        {
+            "active": len(nivaaer) - 1,
+            "currentvalue": {"prefix": "Viser: "},
+            "pad": {"t": 45},
+            "steps": slider_steg,
+            "x": 0,
+            "len": 1,
+        }
+    ],
+)
+fig.show()
+```
+
+Knappene og slideren er laget med Plotlys innebygde klientkontroller. De
+arbeider på data som allerede er lastet i figuren og krever derfor ingen ny
+BigQuery-spørring eller ny sideinnlasting.
