@@ -2,4 +2,4 @@
 applyTo: "**/*.qmd"
 ---
 
-dette er en placeholder for instruksjoner for alle Quarto-filer i repoet.
+Ha fokus på universell utforming på plott og grafer. Inkluder alltid beskrivelse på aksene.
