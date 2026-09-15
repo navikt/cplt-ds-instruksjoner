@@ -1,0 +1,31 @@
+---
+title: "Teamkatalog – Nav-organisasjonen"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{python}
+#| echo: false
+from google.cloud import bigquery
+from plotly import express as px
+
+client = bigquery.Client()
+```
+
+```{python}
+query = """
+select * from `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_med_tilhorighet`
+"""
+df = client.query(query).to_dataframe()
+df.head()
+```
+
+```{python}
+
+fig = px.histogram(df, x="omrade_navn", title="Fordeling av tilhørighet i teamkatalogen")
+fig.show()
+
+```
