@@ -1,0 +1,41 @@
+logo:
+  images:
+    red:
+      path: https://raw.githubusercontent.com/navikt/nav-quarto-brand/main/_extensions/nav_quarto_brand/NAV_logo_digital_Red.svg
+      alt: "Nav logo i rød versjon"
+  small: red
+  medium: red
+  large: red
+
+meta:
+  name:
+    full: Arbeids- og velferdsetaten
+    short: Nav
+
+typography:
+  fonts:
+    - family: Source Sans 3
+      source: google
+      weight: [400, 800]
+      style: normal
+  headings:
+    color: "#002942"
+
+color:
+  palette:
+    accent-600: "#2176D4"
+    brand-magenta-600: "#b65681"
+    brand-blue-600: "#457c9d"
+    brand-beige-600: "#ad634a"
+    success-600: "#00893c"
+    warning-600: "#ca5000"
+    danger-600: "#e22948"
+  foreground: "#202733"
+  background: "#ffffff"
+  primary: brand-magenta-600
+  secondary: brand-blue-600
+  tertiary: brand-beige-600
+  success: success-600
+  warning: warning-600
+  danger: danger-600
+  link: brand-magenta-600

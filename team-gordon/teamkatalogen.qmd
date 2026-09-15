@@ -5,27 +5,55 @@ format:
   html:
     embed-resources: true
     toc: true
+    theme: brand
 ---
 
 ```{python}
 #| echo: false
-from google.cloud import bigquery
-from plotly import express as px
+#| warning: false
+import warnings
 
-client = bigquery.Client()
+warnings.filterwarnings("ignore")
+
+from teamkatalogen import (
+    filtrer_pa_rolle,
+    hent_personer_med_tilhorighet,
+    plott_tilhorighet_bar,
+    plott_tilhorighet_treemap,
+    til_visningstabell,
+    tilhorighet_fordeling,
+)
+
+ROLLE = "data scientist"
+
+df = hent_personer_med_tilhorighet()
+```
+
+## Hvor har data scientister tilhørighet i organisasjonen?
+
+```{python}
+#| echo: false
+#| warning: false
+data_scientister = filtrer_pa_rolle(df, ROLLE)
+fordeling = tilhorighet_fordeling(data_scientister)
+
+fig_bar = plott_tilhorighet_bar(
+    fordeling, tittel="Antall data scientister per tilhørighet i organisasjonen"
+)
+fig_bar.show()
 ```
 
 ```{python}
-query = """
-select * from `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_med_tilhorighet`
-"""
-df = client.query(query).to_dataframe()
-df.head()
+#| echo: false
+#| warning: false
+fig_treemap = plott_tilhorighet_treemap(
+    fordeling, tittel="Andel data scientister per tilhørighet i organisasjonen"
+)
+fig_treemap.show()
 ```
 
 ```{python}
-
-fig = px.histogram(df, x="omrade_navn", title="Fordeling av tilhørighet i teamkatalogen")
-fig.show()
-
+#| echo: false
+#| warning: false
+til_visningstabell(fordeling)
 ```
