@@ -1,0 +1,62 @@
+---
+title: "Data scientists i Nav-organisasjonen"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{python}
+#| echo: false
+#| warning: false
+from google.cloud import bigquery
+from plotly import express as px
+
+client = bigquery.Client()
+```
+
+```{python}
+#| echo: false
+#| warning: false
+query = """
+select *
+from `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_med_tilhorighet`
+where lower(rolle) = 'data scientist'
+   or lower(rolle2) = 'data scientist'
+"""
+df = client.query(query).to_dataframe()
+```
+
+```{python}
+#| echo: false
+#| warning: false
+aksel_farger = [
+    "#0067C5",  # accent (blå)
+    "#06893A",  # success (grønn)
+    "#CC7000",  # warning (oransje)
+    "#C30000",  # danger (rød)
+    "#634689",  # meta-purple
+    "#3E9095",  # meta-lime/turkis
+    "#9C2AA0",  # brand magenta
+]
+
+antall = (
+    df.groupby("omrade_navn")
+    .size()
+    .reset_index(name="antall")
+    .sort_values("antall", ascending=False)
+)
+
+fig = px.bar(
+    antall,
+    x="omrade_navn",
+    y="antall",
+    color="omrade_navn",
+    color_discrete_sequence=aksel_farger,
+    title="Hvor jobber personer med rollen «Data Scientist»?",
+    labels={"omrade_navn": "Område", "antall": "Antall personer"},
+)
+fig.update_layout(showlegend=False, xaxis_title="Område", yaxis_title="Antall personer")
+fig.show()
+```

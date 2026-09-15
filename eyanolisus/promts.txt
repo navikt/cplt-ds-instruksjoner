@@ -1,0 +1,1 @@
+lag en figur som viser hvor alle personer med rolle "data scientist" jobber i organisasjonen. Lag også en tabell med navn, rolle og område navn.

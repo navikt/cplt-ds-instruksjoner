@@ -1,0 +1,88 @@
+---
+title: "Data scientists i Nav-organisasjonen"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{python}
+#| echo: false
+#| warning: false
+from google.cloud import bigquery
+from plotly import express as px
+import pandas as pd
+
+client = bigquery.Client()
+```
+
+```{python}
+#| echo: false
+#| warning: false
+query = """
+select *
+from `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_med_tilhorighet`
+where lower(trim(coalesce(rolle, ''))) like '%data scientist%'
+   or lower(trim(coalesce(rolle2, ''))) like '%data scientist%'
+   or lower(trim(coalesce(rolletype, ''))) like '%data scientist%'
+   or lower(trim(coalesce(rolletype2, ''))) like '%data scientist%'
+"""
+df = client.query(query).to_dataframe()
+df["startdato_nav"] = pd.to_datetime(df["startdato_nav"])
+```
+
+```{python}
+#| echo: false
+#| warning: false
+aksel_farger = [
+    "#0067C5",  # accent (blå)
+    "#06893A",  # success (grønn)
+    "#CC7000",  # warning (oransje)
+    "#C30000",  # danger (rød)
+    "#634689",  # meta-purple
+    "#3E9095",  # meta-lime/turkis
+    "#9C2AA0",  # brand magenta
+]
+
+# Tidsserie: kumulativt antall data scientists per område, over tid (basert på startdato i Nav)
+tidslinje = (
+    df.sort_values("startdato_nav")
+    .groupby(["omrade_navn", "startdato_nav"])
+    .size()
+    .groupby(level=0)
+    .cumsum()
+    .reset_index(name="kumulativt_antall")
+)
+
+fig = px.line(
+    tidslinje,
+    x="startdato_nav",
+    y="kumulativt_antall",
+    color="omrade_navn",
+    color_discrete_sequence=aksel_farger,
+    title="Data Scientist-er i Nav – kumulativt antall per område over tid",
+    labels={
+        "startdato_nav": "Startdato i Nav",
+        "kumulativt_antall": "Kumulativt antall",
+        "omrade_navn": "Område",
+    },
+)
+fig.show()
+```
+
+## Data bak figuren
+
+```{python}
+#| echo: false
+#| warning: false
+tidslinje
+```
+
+## Data scientists i organisasjonen
+
+```{python}
+#| echo: false
+#| warning: false
+df[["navn", "rolle", "omrade_navn"]].sort_values("omrade_navn")
+```
