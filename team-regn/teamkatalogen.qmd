@@ -9,6 +9,8 @@ format:
 
 ```{python}
 #| echo: false
+import pandas as pd
+from IPython.display import HTML, display
 from google.cloud import bigquery
 from plotly import express as px
 
@@ -24,8 +26,277 @@ df.head()
 ```
 
 ```{python}
+#| echo: false
+# Aksel-farger med tydelig kontrast på lys bakgrunn.
+PALETTE = [
+    "#2176d4",  # accent-strong
+    "#00893c",  # success-strong
+    "#ca5000",  # warning-strong
+    "#e22948",  # danger-strong
+    "#457c9d",  # info-strong
+]
 
-fig = px.histogram(df, x="omrade_navn", title="Fordeling av tilhørighet i teamkatalogen")
+def plot_chart(column, title, x_title, description, top_n=None, data=None):
+    data = df if data is None else data
+    counts = (
+        data[column]
+        .fillna("Ukjent")
+        .value_counts()
+        .head(top_n)
+        .sort_values(ascending=False)
+        .rename_axis(column)
+        .reset_index(name="antall")
+    )
+    counts["andel"] = (counts["antall"] / counts["antall"].sum() * 100).round(1)
+    fig = px.bar(
+        counts,
+        x="antall",
+        y=column,
+        orientation="h",
+        text="antall",
+        custom_data=["andel"],
+        color_discrete_sequence=PALETTE,
+    )
+    fig.update_layout(
+        title=title,
+        font=dict(size=14),
+        title_font=dict(size=18),
+        showlegend=False,
+        margin=dict(l=10, r=10, t=60, b=10),
+        plot_bgcolor="#ffffff",
+        paper_bgcolor="#ffffff",
+        hoverlabel=dict(font_size=14),
+    )
+    fig.update_traces(
+        textposition="outside",
+        cliponaxis=False,
+        hovertemplate="%{y}: %{x} personer (%{customdata[0]} %)<extra></extra>",
+    )
+    fig.update_xaxes(
+        title_text="Antall personer",
+        showgrid=False,
+        rangemode="tozero",
+    )
+    fig.update_yaxes(
+        title_text=x_title,
+        gridcolor="#cfd3d8",
+        categoryorder="array",
+        categoryarray=counts[column].tolist()[::-1],
+        automargin=True,
+    )
+    fig.update_layout(height=max(350, 45 * len(counts) + 150))
+    fig.update_layout(meta={"description": description})
+    fig.show()
+    return counts
+
+```
+
+## Fordeling på område
+
+```{python}
+#| echo: false
+counts = plot_chart(
+    "omrade_navn",
+    "Fordeling av tilhørighet i teamkatalogen",
+    "Område",
+    "Stolpediagram som viser antall personer per område i teamkatalogen.",
+)
+```
+
+```{python}
+#| echo: false
+counts
+```
+
+## Fordeling på områdetype
+
+```{python}
+#| echo: false
+counts = plot_chart(
+    "omrade_type", "Fordeling på områdetype", "Områdetype",
+    "Stolpediagram som viser antall personer per områdetype.",
+)
+```
+
+```{python}
+#| echo: false
+counts
+```
+
+## Tilhørighetsnivå
+
+```{python}
+#| echo: false
+counts = plot_chart(
+    "tilhorighet_niva", "Fordeling på tilhørighetsnivå", "Tilhørighetsnivå",
+    "Stolpediagram som viser antall personer per tilhørighetsnivå.",
+)
+```
+
+```{python}
+#| echo: false
+counts
+```
+
+## Rollefordeling
+
+```{python}
+#| echo: false
+counts = plot_chart(
+    "rolle", "Mest brukte roller (topp 15)", "Rolle",
+    "Stolpediagram som viser de 15 vanligste rollene, sortert etter antall personer.",
+    top_n=15,
+)
+```
+
+```{python}
+#| echo: false
+counts
+```
+
+## Rolletype
+
+```{python}
+#| echo: false
+counts = plot_chart(
+    "rolletype", "Fordeling på rolletype", "Rolletype",
+    "Stolpediagram som viser antall personer per rolletype.",
+)
+```
+
+```{python}
+#| echo: false
+counts
+```
+
+## Ansettelsestype
+
+```{python}
+#| echo: false
+counts = plot_chart(
+    "ansettelsestype", "Fordeling på ansettelsestype", "Ansettelsestype",
+    "Stolpediagram som viser antall personer per ansettelsestype.",
+)
+```
+
+```{python}
+#| echo: false
+counts
+```
+
+## Team med flest registrerte personer
+
+```{python}
+#| echo: false
+counts = plot_chart(
+    "team_navn", "Team med flest personer (topp 20)", "Team",
+    "Stolpediagram som viser de 20 teamene med flest registrerte personer.",
+    top_n=20,
+)
+```
+
+```{python}
+#| echo: false
+counts
+```
+
+## Startdato i Nav over tid
+
+```{python}
+#| echo: false
+startdato = pd.to_datetime(df["startdato_nav"], errors="coerce")
+per_ar = (
+    startdato.dropna().dt.year.value_counts().sort_index()
+    .rename_axis("år").reset_index(name="antall")
+)
+fig = px.line(
+    per_ar,
+    x="år",
+    y="antall",
+    markers=True,
+    title="Antall personer med startdato i Nav, per år",
+    color_discrete_sequence=PALETTE,
+)
+fig.update_layout(
+    xaxis_title="År",
+    yaxis_title="Antall personer",
+    hovermode="x unified",
+)
+fig.update_traces(
+    line_width=3,
+    line_color=PALETTE[0],
+    marker_color=PALETTE[0],
+    hovertemplate="År %{x}: %{y} personer<extra></extra>",
+)
 fig.show()
+```
 
+```{python}
+#| echo: false
+per_ar
+```
+
+## Personer med rollen data scientist
+
+Denne delen viser personene som har rollen «data scientist». Tabellen viser alle
+feltene som finnes i datagrunnlaget. Det gjør det mulig å se navn, startdato,
+tilhørighet, team og andre registrerte opplysninger uten at vi må anta hvilke
+kolonner som er tilgjengelige.
+
+```{python}
+#| echo: false
+rolle = df["rolle"].fillna("").astype(str).str.strip().str.casefold()
+data_scientists = df.loc[rolle == "data scientist"].copy()
+
+if data_scientists.empty:
+    print("Ingen personer med rollen «data scientist» ble funnet.")
+else:
+    data_scientists
+```
+
+### Startdato for data scientists
+
+```{python}
+#| echo: false
+data_scientists_med_startdato = data_scientists.copy()
+data_scientists_med_startdato["startdato_nav"] = pd.to_datetime(
+    data_scientists_med_startdato["startdato_nav"], errors="coerce"
+)
+data_scientists_per_ar = (
+    data_scientists_med_startdato.dropna(subset=["startdato_nav"])
+    .assign(år=lambda data: data["startdato_nav"].dt.year)
+    .groupby("år")
+    .size()
+    .rename("antall")
+    .reset_index()
+)
+
+if data_scientists_per_ar.empty:
+    print("Ingen gyldige startdatoer ble funnet for data scientists.")
+else:
+    fig = px.line(
+        data_scientists_per_ar,
+        x="år",
+        y="antall",
+        markers=True,
+        title="Antall data scientists etter startår i Nav",
+        color_discrete_sequence=PALETTE,
+    )
+    fig.update_layout(
+        xaxis_title="Startår",
+        yaxis_title="Antall personer",
+        hovermode="x unified",
+    )
+    fig.update_traces(
+        line_width=3,
+        line_color=PALETTE[0],
+        marker_color=PALETTE[0],
+        hovertemplate="Startår %{x}: %{y} personer<extra></extra>",
+    )
+    fig.show()
+```
+
+```{python}
+#| echo: false
+data_scientists_per_ar
 ```
