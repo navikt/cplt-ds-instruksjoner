@@ -1,0 +1,174 @@
+---
+title: "Teamkatalog i Nav"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+    mainfont: "Source Sans 3"
+---
+
+```{=html}
+<style>
+  body {
+    font-family: "Source Sans 3", "Source Sans Pro", Arial, sans-serif;
+    color: #1E2B3C;
+    background-color: #FFFFFF;
+  }
+  h1, h2, h3 {
+    color: #1E2B3C;
+    font-weight: 600;
+  }
+  p.ingress {
+    font-size: 1.1rem;
+    color: #3E3832;
+  }
+</style>
+```
+
+::: {.ingress}
+Denne rapporten viser hvordan ansatte og konsulenter i Nav fordeler seg på tvers av
+områder i teamkatalogen, og hvordan dette har utviklet seg over tid.
+:::
+
+```{python}
+#| echo: false
+import pandas as pd
+from google.cloud import bigquery
+from plotly import express as px
+
+client = bigquery.Client()
+
+# Fargebruk følger Aksels retningslinjer for datavisualisering
+# (aksel.nav.no/god-praksis/artikler/fargepaletter-for-datavisualisering):
+# - samme farge brukes konsekvent for samme type verdi (antall personer) i alle grafer
+# - fargetokens på 500-nivå og oppover for god kontrast (>3:1)
+# - mørkere border på søyler for å sikre kontrast mot hvit bakgrunn
+AKSEL_BLA_500 = "#0067C5"   # primærfarge for "antall personer/konsulenter"
+AKSEL_BLA_700 = "#00396E"   # border-farge med høyere kontrast
+AKSEL_FONT = "Source Sans 3, Source Sans Pro, Arial, sans-serif"
+AKSEL_TEKST = "#1E2B3C"
+
+
+def aksel_stil(fig, luft_mellom_soyler=True):
+    """Legger på Aksel-tilpasset stil: font, farger, kontrast-border og luft mellom søyler."""
+    fig.update_traces(
+        marker_line_color=AKSEL_BLA_700,
+        marker_line_width=1,
+    )
+    if luft_mellom_soyler:
+        fig.update_layout(bargap=0.15)
+    fig.update_layout(
+        font_family=AKSEL_FONT,
+        font_color=AKSEL_TEKST,
+        title_font_family=AKSEL_FONT,
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+    )
+    return fig
+```
+
+```{python}
+#| echo: false
+query = """
+select * from `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_med_tilhorighet`
+"""
+df = client.query(query).to_dataframe()
+```
+
+## Fordeling på område
+
+```{python}
+#| echo: false
+omrade_rekkefolge = df["omrade_navn"].value_counts().index.tolist()
+
+fig = px.histogram(
+    df,
+    x="omrade_navn",
+    title="Fordeling av tilhørighet i teamkatalogen",
+    labels={"omrade_navn": "Område", "count": "Antall personer"},
+    color_discrete_sequence=[AKSEL_BLA_500],
+    category_orders={"omrade_navn": omrade_rekkefolge},
+)
+fig.update_layout(yaxis_title="Antall personer")
+fig = aksel_stil(fig)
+fig.show()
+```
+
+Grafen viser antall personer registrert i teamkatalogen per område, sortert fra
+flest til færrest.
+
+## Konsulenter per område
+
+```{python}
+#| echo: false
+konsulent_df = (
+    df[df["ansettelsestype"] == "EXTERNAL"]
+    .groupby("omrade_navn")
+    .size()
+    .reset_index(name="antall")
+    .sort_values("antall", ascending=False)
+)
+
+fig_konsulenter = px.bar(
+    konsulent_df,
+    x="omrade_navn",
+    y="antall",
+    title="Konsulenter fordelt på område",
+    labels={"omrade_navn": "Område", "antall": "Antall konsulenter"},
+    color_discrete_sequence=[AKSEL_BLA_500],
+)
+fig_konsulenter = aksel_stil(fig_konsulenter)
+fig_konsulenter.show()
+```
+
+Grafen viser antall eksterne konsulenter (ansettelsestype "EXTERNAL") per område,
+sortert fra flest til færrest.
+
+## Utvikling over tid
+
+```{python}
+#| echo: false
+# Finn en dato-/tidsstempel-kolonne automatisk, siden vi ikke kjenner det fulle skjemaet på forhånd
+dato_kolonner = [
+    kol for kol in df.columns
+    if "date" in kol.lower() or "dato" in kol.lower() or "tid" in kol.lower()
+    or str(df[kol].dtype).startswith("datetime")
+]
+
+if dato_kolonner:
+    dato_kolonne = dato_kolonner[0]
+    trend_df = (
+        df.assign(**{dato_kolonne: pd.to_datetime(df[dato_kolonne]).dt.to_period("Q").dt.to_timestamp()})
+        .loc[lambda d: (d[dato_kolonne] >= "2015-01-01") & (d[dato_kolonne] <= pd.Timestamp.now())]
+        .groupby(dato_kolonne)
+        .size()
+        .reset_index(name="antall")
+        .sort_values(dato_kolonne)
+    )
+    fig_trend = px.bar(
+        trend_df,
+        x=dato_kolonne,
+        y="antall",
+        title=f"Utvikling over tid ({dato_kolonne}, per kvartal)",
+        labels={dato_kolonne: "Kvartal", "antall": "Antall personer"},
+        color_discrete_sequence=[AKSEL_BLA_500],
+    )
+    fig_trend.update_xaxes(
+        tickmode="array",
+        tickvals=trend_df[dato_kolonne],
+        ticktext=trend_df[dato_kolonne].dt.to_period("Q").astype(str),
+    )
+    fig_trend = aksel_stil(fig_trend)
+    fig_trend.show()
+
+    forste = trend_df.iloc[0]
+    siste = trend_df.iloc[-1]
+    print(
+        f"Antall personer gikk fra {forste['antall']} i "
+        f"{forste[dato_kolonne].to_period('Q')} til {siste['antall']} i "
+        f"{siste[dato_kolonne].to_period('Q')}."
+    )
+else:
+    print("Fant ingen dato-/tidsstempel-kolonne i datasettet – kan ikke lage tidslinje.")
+```

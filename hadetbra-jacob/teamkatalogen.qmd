@@ -1,0 +1,101 @@
+---
+title: "Teamkatalog – Nav-organisasjonen"
+lang: nb
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{python}
+#| echo: false
+import pandas as pd
+from google.cloud import bigquery
+from plotly import express as px
+
+client = bigquery.Client()
+```
+
+```{python}
+query = """
+select * from `pensjon-saksbehandli-prod-1f83.teamkatalogen_historikk.personer_med_tilhorighet`
+"""
+df = client.query(query).to_dataframe()
+df.head(40)
+```
+
+```{python}
+
+omrade_rekkefolge = df["omrade_navn"].value_counts().index.tolist()
+
+fig = px.histogram(
+    df,
+    x="omrade_navn",
+    title="Fordeling av tilhørighet i teamkatalogen",
+    labels={"omrade_navn": "Område", "count": "Antall personer"},
+    color_discrete_sequence=["hotpink"],
+    category_orders={"omrade_navn": omrade_rekkefolge},
+)
+fig.update_layout(yaxis_title="Antall personer")
+fig.show()
+
+```
+
+```{python}
+
+konsulent_df = (
+    df[df["ansettelsestype"] == "EXTERNAL"]
+    .groupby("omrade_navn")
+    .size()
+    .reset_index(name="antall")
+    .sort_values("antall", ascending=False)
+)
+
+fig_konsulenter = px.bar(
+    konsulent_df,
+    x="omrade_navn",
+    y="antall",
+    title="Konsulenter fordelt på område",
+    labels={"omrade_navn": "Område", "antall": "Antall konsulenter"},
+    color_discrete_sequence=["hotpink"],
+)
+fig_konsulenter.show()
+
+```
+
+```{python}
+#| echo: false
+# Finn en dato-/tidsstempel-kolonne automatisk, siden vi ikke kjenner det fulle skjemaet på forhånd
+dato_kolonner = [
+    kol for kol in df.columns
+    if "date" in kol.lower() or "dato" in kol.lower() or "tid" in kol.lower()
+    or str(df[kol].dtype).startswith("datetime")
+]
+
+if dato_kolonner:
+    dato_kolonne = dato_kolonner[0]
+    trend_df = (
+        df.assign(**{dato_kolonne: pd.to_datetime(df[dato_kolonne]).dt.to_period("Q").dt.to_timestamp()})
+        .loc[lambda d: (d[dato_kolonne] >= "2015-01-01") & (d[dato_kolonne] <= pd.Timestamp.now())]
+        .groupby(dato_kolonne)
+        .size()
+        .reset_index(name="antall")
+        .sort_values(dato_kolonne)
+    )
+    fig_trend = px.bar(
+        trend_df,
+        x=dato_kolonne,
+        y="antall",
+        title=f"Utvikling over tid ({dato_kolonne}, per kvartal)",
+        labels={dato_kolonne: "Kvartal", "antall": "Antall personer"},
+        color_discrete_sequence=["hotpink"],
+    )
+    fig_trend.update_xaxes(
+        tickmode="array",
+        tickvals=trend_df[dato_kolonne],
+        ticktext=trend_df[dato_kolonne].dt.to_period("Q").astype(str),
+    )
+    fig_trend.show()
+else:
+    print("Fant ingen dato-/tidsstempel-kolonne i datasettet – kan ikke lage tidslinje.")
+```
