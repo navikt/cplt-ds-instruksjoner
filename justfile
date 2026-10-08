@@ -25,3 +25,7 @@ render:
     uv run quarto render gruppe-eksempel/teamkatalogen.qmd
     @echo ""
     @echo "OBS! Quarto casher innimellom litt for mye, så ved feil kan det hjelpe å starte ny terminal"
+
+# oppdaterer alle pypi-pakker
+update:
+    uv lock --upgrade
