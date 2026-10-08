@@ -29,3 +29,4 @@ render:
 # oppdaterer alle pypi-pakker
 update:
     uv lock --upgrade
+    cd fjellrevene && uv lock --upgrade
